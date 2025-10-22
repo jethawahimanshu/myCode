@@ -32,7 +32,8 @@ exports.handler = async function(event, context) {
         version: 'b05b1dff1d8c6dc63d14b0cdb42135378dcb87f6373b0d3d341ede46e59e2b38',
         input: {
           prompt: prompt,
-          duration: duration
+          duration: duration,
+          model_version: 'melody-large'
         }
       })
     });
