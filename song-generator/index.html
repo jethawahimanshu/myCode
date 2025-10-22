@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Song Generator - Claude + MusicGen</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎵 AI Song Generator</h1>
+            <p class="subtitle">Create complete songs with AI - Lyrics by Claude, Music by MusicGen</p>
+        </header>
+
+        <!-- API Keys Setup Section -->
+        <section class="api-setup" id="api-setup">
+            <h2>🔑 API Configuration</h2>
+            <div class="api-inputs">
+                <div class="input-group">
+                    <label for="claude-api-key">
+                        Claude API Key
+                        <a href="https://console.anthropic.com/" target="_blank" class="help-link">(Get one here)</a>
+                    </label>
+                    <input type="password" id="claude-api-key" placeholder="sk-ant-api03-..." />
+                </div>
+                <div class="input-group">
+                    <label for="hf-api-key">
+                        Hugging Face API Token
+                        <a href="https://huggingface.co/settings/tokens" target="_blank" class="help-link">(Get one here)</a>
+                    </label>
+                    <input type="password" id="hf-api-key" placeholder="hf_..." />
+                </div>
+                <button class="btn btn-primary" id="save-keys">Save Keys</button>
+            </div>
+            <p class="info-text">🔒 Your API keys are stored locally in your browser and never sent to any server except the official APIs.</p>
+        </section>
+
+        <!-- Song Generation Section -->
+        <section class="generator-section" id="generator-section" style="display: none;">
+            <h2>✨ Describe Your Song</h2>
+
+            <div class="input-group">
+                <label for="song-premise">Song Premise / Description</label>
+                <textarea
+                    id="song-premise"
+                    rows="4"
+                    placeholder="Example: A melancholic indie rock song about lost love in a rainy city, with poetic lyrics and a slow tempo..."
+                ></textarea>
+            </div>
+
+            <div class="options-grid">
+                <div class="input-group">
+                    <label for="genre">Genre (optional)</label>
+                    <select id="genre">
+                        <option value="">Let AI decide</option>
+                        <option value="pop">Pop</option>
+                        <option value="rock">Rock</option>
+                        <option value="indie">Indie</option>
+                        <option value="electronic">Electronic</option>
+                        <option value="jazz">Jazz</option>
+                        <option value="blues">Blues</option>
+                        <option value="country">Country</option>
+                        <option value="hip-hop">Hip Hop</option>
+                        <option value="classical">Classical</option>
+                        <option value="folk">Folk</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="mood">Mood (optional)</label>
+                    <select id="mood">
+                        <option value="">Let AI decide</option>
+                        <option value="happy">Happy</option>
+                        <option value="sad">Sad</option>
+                        <option value="energetic">Energetic</option>
+                        <option value="calm">Calm</option>
+                        <option value="romantic">Romantic</option>
+                        <option value="dark">Dark</option>
+                        <option value="uplifting">Uplifting</option>
+                        <option value="melancholic">Melancholic</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="duration">Music Duration</label>
+                    <select id="duration">
+                        <option value="10">10 seconds (preview)</option>
+                        <option value="20" selected>20 seconds</option>
+                        <option value="30">30 seconds</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-generate" id="generate-btn">
+                🎼 Generate Song
+            </button>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progress-section" style="display: none;">
+                <div class="progress-item">
+                    <div class="progress-icon" id="lyrics-icon">⏳</div>
+                    <div class="progress-text">
+                        <h3>Generating Lyrics...</h3>
+                        <p id="lyrics-status">Using Claude AI to create original lyrics</p>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-icon" id="music-icon">⏳</div>
+                    <div class="progress-text">
+                        <h3>Composing Music...</h3>
+                        <p id="music-status">Using MusicGen to create instrumental track</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="results-section" style="display: none;">
+                <h2>🎉 Your Song is Ready!</h2>
+
+                <!-- Song Info -->
+                <div class="song-info">
+                    <h3 id="song-title"></h3>
+                    <p id="song-metadata"></p>
+                </div>
+
+                <!-- Lyrics Display -->
+                <div class="lyrics-container">
+                    <h3>📝 Lyrics</h3>
+                    <div id="lyrics-display" class="lyrics-text"></div>
+                    <button class="btn btn-secondary" id="copy-lyrics">Copy Lyrics</button>
+                </div>
+
+                <!-- Music Player -->
+                <div class="music-container">
+                    <h3>🎵 Generated Music</h3>
+                    <audio id="music-player" controls></audio>
+                    <div class="download-buttons">
+                        <button class="btn btn-primary" id="download-music">Download Music (MP3)</button>
+                        <button class="btn btn-secondary" id="download-lyrics">Download Lyrics (TXT)</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" id="generate-another">Generate Another Song</button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <strong>Anthropic Claude</strong> for lyrics & <strong>Meta MusicGen</strong> for music generation</p>
+            <p class="small">🎵 Created with AI • No music theory required</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
