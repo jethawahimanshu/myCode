@@ -51,8 +51,8 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify({
         input: {
-          lyrics_prompt: stylePrompt,
-          prompt: songData.lyrics
+          prompt: stylePrompt,
+          lyrics: songData.lyrics
         }
       })
     });
