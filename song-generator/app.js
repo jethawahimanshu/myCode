@@ -101,10 +101,15 @@ class MusicGenAPI {
                 }
 
                 // Log the full error for debugging
-                console.error('Music generation error:', error);
+                console.error('=== MUSIC GENERATION ERROR ===');
+                console.error('Status:', response.status);
+                console.error('Response text:', text);
+                console.error('Parsed error:', error);
+                console.error('Error keys:', Object.keys(error));
+                console.error('==============================');
 
                 // Extract the most detailed error message available
-                const errorMsg = error.error || error.detail || error.message || text || 'Music generation error';
+                const errorMsg = error.error || error.detail || error.message || JSON.stringify(error) || text || 'Music generation error';
                 throw new Error(errorMsg);
             }
 
