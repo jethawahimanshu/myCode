@@ -25,17 +25,40 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Truncate lyrics to fit MiniMax requirements (10-600 characters)
+    // Clean and format lyrics to fit MiniMax requirements
     let lyrics = songData.lyrics.trim();
+
+    // Remove any problematic characters and normalize
+    lyrics = lyrics
+      .replace(/[\r\n]+/g, '\n')           // Normalize line breaks to \n
+      .replace(/["]/g, '')                  // Remove quotes that might break JSON
+      .replace(/['']/g, "'")               // Normalize smart quotes to regular apostrophes
+      .replace(/[""]/g, '')                 // Remove smart quotes
+      .replace(/…/g, '...')                // Replace ellipsis character
+      .replace(/—/g, '-')                   // Replace em dash
+      .replace(/\t/g, ' ')                  // Replace tabs with spaces
+      .replace(/\s+$/gm, '')               // Remove trailing whitespace from lines
+      .trim();
+
+    // Ensure structure tags are lowercase and properly formatted
+    lyrics = lyrics
+      .replace(/\[Verse\]/gi, '[verse]')
+      .replace(/\[Chorus\]/gi, '[chorus]')
+      .replace(/\[Bridge\]/gi, '[bridge]')
+      .replace(/\[Intro\]/gi, '[intro]')
+      .replace(/\[Outro\]/gi, '[outro]')
+      .replace(/\[Pre-Chorus\]/gi, '[pre-chorus]')
+      .replace(/\[Post-Chorus\]/gi, '[post-chorus]');
+
+    // Check length after cleaning
     if (lyrics.length > 600) {
-      // Truncate to 590 chars and add ellipsis
       lyrics = lyrics.substring(0, 590) + '...';
-      console.log(`Lyrics truncated from ${songData.lyrics.length} to 600 characters`);
+      console.log(`Lyrics truncated from ${lyrics.length} to 600 characters`);
     }
     if (lyrics.length < 10) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Lyrics too short (minimum 10 characters)' })
+        body: JSON.stringify({ error: 'Lyrics too short after cleaning (minimum 10 characters)' })
       };
     }
 
