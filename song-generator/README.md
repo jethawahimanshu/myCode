@@ -34,19 +34,49 @@ A complete AI-powered song generation website that creates **original lyrics** u
 6. Click **"Generate"**
 7. Copy your token (starts with `hf_...`)
 
-### Step 2: Open the App
+### Step 2: Deploy to Netlify
 
-#### Option A: Run Locally
+**This app requires Netlify to work** (it uses serverless functions to proxy API calls and avoid CORS issues).
+
+#### Deployment Steps:
+
+1. **Push to GitHub** (if not already done):
+   ```bash
+   git add .
+   git commit -m "Add song generator"
+   git push
+   ```
+
+2. **Deploy to Netlify**:
+   - Go to [Netlify](https://app.netlify.com/)
+   - Click **"Add new site"** → **"Import an existing project"**
+   - Choose **GitHub** and select your repository
+   - Configure build settings:
+     - **Base directory**: `song-generator`
+     - **Build command**: (leave empty)
+     - **Publish directory**: `.`
+   - Click **"Deploy site"**
+
+3. **Your app will be live!**
+   - Netlify will give you a URL like: `https://your-app.netlify.app`
+   - The serverless functions will automatically deploy too
+
+#### Local Development (Optional):
+
+To test locally with Netlify functions:
+
 ```bash
-cd song-generator
-python3 -m http.server 8000
-```
-Then open: `http://localhost:8000`
+# Install Netlify CLI
+npm install -g netlify-cli
 
-#### Option B: Deploy to GitHub Pages
-1. Push the `song-generator` folder to GitHub
-2. Enable GitHub Pages
-3. Access from anywhere!
+# Navigate to song-generator folder
+cd song-generator
+
+# Run local dev server
+netlify dev
+```
+
+Then open: `http://localhost:8888`
 
 ### Step 3: Configure API Keys
 

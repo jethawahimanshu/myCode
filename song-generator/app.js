@@ -25,173 +25,86 @@ class APIManager {
     }
 }
 
-// Claude API Integration
+// Claude API Integration (via Netlify Function)
 class ClaudeAPI {
     constructor(apiKey) {
         this.apiKey = apiKey;
-        this.endpoint = 'https://api.anthropic.com/v1/messages';
+        this.endpoint = '/.netlify/functions/generate-lyrics';
     }
 
     async generateLyrics(premise, genre, mood) {
-        const prompt = this.buildPrompt(premise, genre, mood);
-
         try {
             const response = await fetch(this.endpoint, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': this.apiKey,
-                    'anthropic-version': '2023-06-01'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: 'claude-3-5-sonnet-20241022',
-                    max_tokens: 2000,
-                    messages: [{
-                        role: 'user',
-                        content: prompt
-                    }]
+                    apiKey: this.apiKey,
+                    premise,
+                    genre,
+                    mood
                 })
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error?.message || 'Claude API error');
+                throw new Error(error.error || 'Claude API error');
             }
 
             const data = await response.json();
-            const text = data.content[0].text;
-
-            return this.parseLyricsResponse(text);
+            return data;
         } catch (error) {
             console.error('Claude API Error:', error);
             throw error;
         }
     }
-
-    buildPrompt(premise, genre, mood) {
-        let prompt = `You are a professional songwriter. Create original song lyrics based on this description:\n\n${premise}\n\n`;
-
-        if (genre) {
-            prompt += `Genre: ${genre}\n`;
-        }
-        if (mood) {
-            prompt += `Mood: ${mood}\n`;
-        }
-
-        prompt += `\nPlease provide:\n`;
-        prompt += `1. A creative song title\n`;
-        prompt += `2. Complete lyrics with the following structure:\n`;
-        prompt += `   - Verse 1\n`;
-        prompt += `   - Chorus\n`;
-        prompt += `   - Verse 2\n`;
-        prompt += `   - Chorus\n`;
-        prompt += `   - Bridge (optional)\n`;
-        prompt += `   - Final Chorus\n`;
-        prompt += `3. A brief description of the musical style and instrumentation\n`;
-        prompt += `4. Suggested tempo (BPM) and key\n\n`;
-        prompt += `Format your response as JSON with these fields:\n`;
-        prompt += `{\n`;
-        prompt += `  "title": "Song Title",\n`;
-        prompt += `  "lyrics": "Full lyrics with [Verse 1], [Chorus], etc. labels",\n`;
-        prompt += `  "musicDescription": "Description of the musical style",\n`;
-        prompt += `  "tempo": "120 BPM",\n`;
-        prompt += `  "key": "C Major"\n`;
-        prompt += `}`;
-
-        return prompt;
-    }
-
-    parseLyricsResponse(text) {
-        try {
-            // Try to extract JSON from the response
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                return parsed;
-            }
-
-            // Fallback: parse text format
-            return {
-                title: this.extractTitle(text),
-                lyrics: this.extractLyrics(text),
-                musicDescription: this.extractMusicDescription(text),
-                tempo: '120 BPM',
-                key: 'C Major'
-            };
-        } catch (error) {
-            console.error('Parse error:', error);
-            // Return raw text as fallback
-            return {
-                title: 'Untitled Song',
-                lyrics: text,
-                musicDescription: 'Original composition',
-                tempo: '120 BPM',
-                key: 'C Major'
-            };
-        }
-    }
-
-    extractTitle(text) {
-        const titleMatch = text.match(/(?:title|Title):\s*"?([^"\n]+)"?/i);
-        return titleMatch ? titleMatch[1] : 'Untitled Song';
-    }
-
-    extractLyrics(text) {
-        // Try to find lyrics section
-        const lyricsMatch = text.match(/(?:lyrics|Lyrics):\s*"?([\s\S]*?)(?:"\s*,|\n\n)/i);
-        if (lyricsMatch) {
-            return lyricsMatch[1].trim();
-        }
-
-        // Return cleaned text
-        return text.replace(/\{|\}|"title":|"lyrics":/gi, '').trim();
-    }
-
-    extractMusicDescription(text) {
-        const descMatch = text.match(/(?:musicDescription|Music Description):\s*"?([^"\n]+)"?/i);
-        return descMatch ? descMatch[1] : 'Original composition';
-    }
 }
 
-// MusicGen API Integration (via Hugging Face)
+// MusicGen API Integration (via Netlify Function)
 class MusicGenAPI {
     constructor(apiKey) {
         this.apiKey = apiKey;
-        this.endpoint = 'https://api-inference.huggingface.co/models/facebook/musicgen-small';
+        this.endpoint = '/.netlify/functions/generate-music';
     }
 
-    async generateMusic(description, duration = 20) {
-        const inputs = this.buildMusicPrompt(description, duration);
+    async generateMusic(songData, duration = 20) {
+        const description = this.buildMusicPrompt(songData, duration);
 
         try {
             const response = await fetch(this.endpoint, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    inputs: inputs,
-                    parameters: {
-                        max_new_tokens: Math.floor(duration * 50) // Approximate tokens for duration
-                    }
+                    apiKey: this.apiKey,
+                    description,
+                    duration
                 })
             });
 
             if (!response.ok) {
-                const error = await response.text();
-                console.error('MusicGen Error Response:', error);
+                const error = await response.json();
 
                 // Check if model is loading
-                if (response.status === 503) {
-                    throw new Error('Model is loading. Please wait 30 seconds and try again.');
+                if (error.retry) {
+                    throw new Error(error.error);
                 }
 
-                throw new Error(`MusicGen API error: ${response.status}`);
+                throw new Error(error.error || 'MusicGen API error');
             }
 
-            // Response is audio blob
-            const audioBlob = await response.blob();
+            const data = await response.json();
+
+            // Convert base64 to blob
+            const binaryString = atob(data.audio);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const audioBlob = new Blob([bytes], { type: data.contentType });
+
             return audioBlob;
         } catch (error) {
             console.error('MusicGen API Error:', error);
