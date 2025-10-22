@@ -133,11 +133,24 @@ exports.handler = async function(event, context) {
       console.error('Sent payload:', JSON.stringify(inputPayload, null, 2));
       console.error('==========================');
 
+      // Extract the most useful error message
+      let errorMessage = 'Failed to create prediction';
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.detail) {
+        errorMessage = error.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (error.error) {
+        errorMessage = error.error;
+      }
+
       return {
         statusCode: createResponse.status,
         body: JSON.stringify({
-          error: error.detail || error.message || 'Failed to create prediction',
-          details: error
+          error: errorMessage,
+          details: error,
+          status: createResponse.status
         })
       };
     }

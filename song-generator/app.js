@@ -99,7 +99,13 @@ class MusicGenAPI {
                 } catch (e) {
                     error = { error: text || 'Music generation error' };
                 }
-                throw new Error(error.error || 'Music generation error');
+
+                // Log the full error for debugging
+                console.error('Music generation error:', error);
+
+                // Extract the most detailed error message available
+                const errorMsg = error.error || error.detail || error.message || text || 'Music generation error';
+                throw new Error(errorMsg);
             }
 
             const data = await response.json();
