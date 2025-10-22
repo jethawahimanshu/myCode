@@ -25,6 +25,20 @@ exports.handler = async function(event, context) {
       };
     }
 
+    // Truncate lyrics to fit MiniMax requirements (10-600 characters)
+    let lyrics = songData.lyrics.trim();
+    if (lyrics.length > 600) {
+      // Truncate to 590 chars and add ellipsis
+      lyrics = lyrics.substring(0, 590) + '...';
+      console.log(`Lyrics truncated from ${songData.lyrics.length} to 600 characters`);
+    }
+    if (lyrics.length < 10) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Lyrics too short (minimum 10 characters)' })
+      };
+    }
+
     // Build the style/genre prompt
     let stylePrompt = '';
     if (genre && mood) {
@@ -52,7 +66,7 @@ exports.handler = async function(event, context) {
       body: JSON.stringify({
         input: {
           prompt: stylePrompt,
-          lyrics: songData.lyrics
+          lyrics: lyrics
         }
       })
     });
