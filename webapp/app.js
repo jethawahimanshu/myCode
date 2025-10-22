@@ -143,35 +143,50 @@ class GitHubStorage {
 class DataManager {
     constructor() {
         this.githubStorage = new GitHubStorage();
-        this.entries = [];
         this.currentEntry = null;
         this.sha = null; // GitHub file SHA for updates
         this.syncing = false;
-        this.init();
+
+        // Load from localStorage immediately (synchronous)
+        this.entries = this.loadEntriesLocal();
+        console.log('Loaded entries from localStorage:', this.entries.length);
+
+        // Start GitHub sync in background (don't wait for it)
+        this.syncFromGitHubIfConfigured();
     }
 
-    async init() {
-        // Always load from localStorage first (fast)
-        this.entries = this.loadEntriesLocal();
-
-        // If GitHub sync is enabled, try to sync
+    async syncFromGitHubIfConfigured() {
+        // If GitHub sync is enabled, sync in background
         if (this.githubStorage.isConfigured()) {
+            console.log('GitHub sync is configured, syncing...');
             await this.syncFromGitHub();
-        }
 
-        // Update UI after initialization
-        if (window.app) {
-            app.updateUI();
+            // Update UI after GitHub sync completes
+            if (window.app) {
+                app.updateUI();
+            }
         }
     }
 
     loadEntriesLocal() {
-        const data = localStorage.getItem('mindfulness_entries');
-        return data ? JSON.parse(data) : [];
+        try {
+            const data = localStorage.getItem('mindfulness_entries');
+            const entries = data ? JSON.parse(data) : [];
+            console.log('localStorage read:', entries.length, 'entries');
+            return entries;
+        } catch (error) {
+            console.error('Error loading from localStorage:', error);
+            return [];
+        }
     }
 
     saveEntriesLocal() {
-        localStorage.setItem('mindfulness_entries', JSON.stringify(this.entries));
+        try {
+            localStorage.setItem('mindfulness_entries', JSON.stringify(this.entries));
+            console.log('Saved to localStorage:', this.entries.length, 'entries');
+        } catch (error) {
+            console.error('Error saving to localStorage:', error);
+        }
     }
 
     async syncFromGitHub() {
@@ -237,13 +252,16 @@ class DataManager {
         return success;
     }
 
-    async saveEntries() {
-        // Always save locally first
+    saveEntries() {
+        // ALWAYS save to localStorage first (synchronous, immediate)
         this.saveEntriesLocal();
 
-        // If GitHub sync is enabled, also save to GitHub
+        // If GitHub sync is enabled, also save to GitHub (in background, don't wait)
         if (this.githubStorage.isConfigured()) {
-            await this.syncToGitHub();
+            // Don't await - let it happen in background
+            this.syncToGitHub().catch(err => {
+                console.error('Background GitHub sync failed:', err);
+            });
         }
     }
 
@@ -423,6 +441,9 @@ class App {
 
         this.initEventListeners();
         this.checkInstallability();
+
+        // Update UI immediately with loaded data
+        this.updateUI();
     }
 
     initEventListeners() {
@@ -1008,13 +1029,37 @@ class App {
     }
 }
 
+// Test localStorage availability
+function testLocalStorage() {
+    try {
+        const testKey = '__localStorage_test__';
+        localStorage.setItem(testKey, 'test');
+        const result = localStorage.getItem(testKey);
+        localStorage.removeItem(testKey);
+
+        if (result === 'test') {
+            console.log('✅ localStorage is working');
+            return true;
+        } else {
+            console.error('❌ localStorage read/write mismatch');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ localStorage is NOT available:', error);
+        alert('Warning: Data storage is not available in this browser. Your data will not be saved. Please check browser settings or try a different browser.');
+        return false;
+    }
+}
+
 // Initialize app when DOM is ready
 let app;
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        testLocalStorage();
         app = new App();
     });
 } else {
+    testLocalStorage();
     app = new App();
 }
 
