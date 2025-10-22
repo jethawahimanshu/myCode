@@ -1,17 +1,250 @@
-// Data Management
-class DataManager {
+// GitHub Storage Backend
+class GitHubStorage {
     constructor() {
-        this.entries = this.loadEntries();
-        this.currentEntry = null;
+        this.token = localStorage.getItem('github_token') || '';
+        this.repo = localStorage.getItem('github_repo') || '';
+        this.owner = localStorage.getItem('github_owner') || '';
+        this.branch = localStorage.getItem('github_branch') || 'main';
+        this.dataFile = 'mindfulness-data.json';
+        this.enabled = localStorage.getItem('github_sync_enabled') === 'true';
+        this.lastSync = localStorage.getItem('last_sync') || null;
     }
 
-    loadEntries() {
+    isConfigured() {
+        return this.enabled && this.token && this.repo && this.owner;
+    }
+
+    configure(token, owner, repo, branch = 'main') {
+        this.token = token;
+        this.owner = owner;
+        this.repo = repo;
+        this.branch = branch;
+        this.enabled = true;
+
+        localStorage.setItem('github_token', token);
+        localStorage.setItem('github_owner', owner);
+        localStorage.setItem('github_repo', repo);
+        localStorage.setItem('github_branch', branch);
+        localStorage.setItem('github_sync_enabled', 'true');
+    }
+
+    disable() {
+        this.enabled = false;
+        localStorage.setItem('github_sync_enabled', 'false');
+    }
+
+    async fetchData() {
+        if (!this.isConfigured()) {
+            return null;
+        }
+
+        try {
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.dataFile}?ref=${this.branch}`;
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (response.status === 404) {
+                // File doesn't exist yet, return empty data
+                return { entries: [], sha: null };
+            }
+
+            if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const content = atob(data.content);
+            const entries = JSON.parse(content);
+
+            this.lastSync = new Date().toISOString();
+            localStorage.setItem('last_sync', this.lastSync);
+
+            return { entries, sha: data.sha };
+        } catch (error) {
+            console.error('Error fetching from GitHub:', error);
+            return null;
+        }
+    }
+
+    async saveData(entries, sha = null) {
+        if (!this.isConfigured()) {
+            return false;
+        }
+
+        try {
+            const content = btoa(JSON.stringify(entries, null, 2));
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.dataFile}`;
+
+            const body = {
+                message: `Update mindfulness data - ${new Date().toISOString()}`,
+                content: content,
+                branch: this.branch
+            };
+
+            if (sha) {
+                body.sha = sha;
+            }
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`GitHub API error: ${response.status} - ${error.message}`);
+            }
+
+            this.lastSync = new Date().toISOString();
+            localStorage.setItem('last_sync', this.lastSync);
+
+            return true;
+        } catch (error) {
+            console.error('Error saving to GitHub:', error);
+            return false;
+        }
+    }
+
+    async testConnection() {
+        if (!this.token || !this.owner || !this.repo) {
+            return { success: false, error: 'Missing configuration' };
+        }
+
+        try {
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}`;
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (!response.ok) {
+                return { success: false, error: `API returned ${response.status}` };
+            }
+
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+}
+
+// Enhanced Data Management with GitHub Sync
+class DataManager {
+    constructor() {
+        this.githubStorage = new GitHubStorage();
+        this.entries = [];
+        this.currentEntry = null;
+        this.sha = null; // GitHub file SHA for updates
+        this.syncing = false;
+        this.init();
+    }
+
+    async init() {
+        // Always load from localStorage first (fast)
+        this.entries = this.loadEntriesLocal();
+
+        // If GitHub sync is enabled, try to sync
+        if (this.githubStorage.isConfigured()) {
+            await this.syncFromGitHub();
+        }
+
+        // Update UI after initialization
+        if (window.app) {
+            app.updateUI();
+        }
+    }
+
+    loadEntriesLocal() {
         const data = localStorage.getItem('mindfulness_entries');
         return data ? JSON.parse(data) : [];
     }
 
-    saveEntries() {
+    saveEntriesLocal() {
         localStorage.setItem('mindfulness_entries', JSON.stringify(this.entries));
+    }
+
+    async syncFromGitHub() {
+        if (this.syncing || !this.githubStorage.isConfigured()) {
+            return;
+        }
+
+        this.syncing = true;
+        console.log('Syncing from GitHub...');
+
+        const result = await this.githubStorage.fetchData();
+
+        if (result) {
+            // Merge entries: combine local and GitHub data
+            const githubEntries = result.entries || [];
+            const localEntries = this.entries;
+
+            // Create a map of all entries by ID
+            const entriesMap = new Map();
+
+            // Add GitHub entries first (they're the source of truth)
+            githubEntries.forEach(entry => {
+                entriesMap.set(entry.id, entry);
+            });
+
+            // Add local entries (only if not already in GitHub or newer)
+            localEntries.forEach(entry => {
+                const existing = entriesMap.get(entry.id);
+                if (!existing) {
+                    entriesMap.set(entry.id, entry);
+                }
+            });
+
+            // Update entries and save SHA
+            this.entries = Array.from(entriesMap.values()).sort((a, b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+            this.sha = result.sha;
+
+            // Save merged data locally
+            this.saveEntriesLocal();
+
+            console.log('Synced successfully from GitHub');
+        }
+
+        this.syncing = false;
+    }
+
+    async syncToGitHub() {
+        if (!this.githubStorage.isConfigured()) {
+            return false;
+        }
+
+        console.log('Syncing to GitHub...');
+        const success = await this.githubStorage.saveData(this.entries, this.sha);
+
+        if (success) {
+            console.log('Synced successfully to GitHub');
+            // Refresh to get new SHA
+            await this.syncFromGitHub();
+        }
+
+        return success;
+    }
+
+    async saveEntries() {
+        // Always save locally first
+        this.saveEntriesLocal();
+
+        // If GitHub sync is enabled, also save to GitHub
+        if (this.githubStorage.isConfigured()) {
+            await this.syncToGitHub();
+        }
     }
 
     createEntry() {
@@ -62,7 +295,9 @@ class DataManager {
         if (confirm('Are you sure you want to delete all your data? This cannot be undone.')) {
             this.entries = [];
             this.saveEntries();
-            app.updateUI();
+            if (window.app) {
+                app.updateUI();
+            }
         }
     }
 }
@@ -156,8 +391,8 @@ class NotificationManager {
         if (Notification.permission === 'granted') {
             new Notification('Mindfulness Check-In', {
                 body: 'Time to reflect on your day. How are you doing?',
-                icon: 'icon-192.png',
-                badge: 'icon-192.png',
+                icon: 'icon.svg',
+                badge: 'icon.svg',
                 tag: 'mindfulness-checkin',
                 requireInteraction: false
             });
@@ -187,7 +422,6 @@ class App {
         this.deferredPrompt = null;
 
         this.initEventListeners();
-        this.updateUI();
         this.checkInstallability();
     }
 
@@ -229,6 +463,49 @@ class App {
         document.getElementById('clear-data-btn').addEventListener('click', () => {
             this.dataManager.clearAllData();
         });
+
+        // GitHub Sync
+        const githubToggle = document.getElementById('github-sync-toggle');
+        if (githubToggle) {
+            githubToggle.addEventListener('change', (e) => {
+                this.handleGitHubSyncToggle(e.target.checked);
+            });
+        }
+
+        const configureGitHubBtn = document.getElementById('configure-github-btn');
+        if (configureGitHubBtn) {
+            configureGitHubBtn.addEventListener('click', () => {
+                this.openGitHubConfig();
+            });
+        }
+
+        const saveGitHubBtn = document.getElementById('save-github-config');
+        if (saveGitHubBtn) {
+            saveGitHubBtn.addEventListener('click', () => {
+                this.saveGitHubConfig();
+            });
+        }
+
+        const testGitHubBtn = document.getElementById('test-github-connection');
+        if (testGitHubBtn) {
+            testGitHubBtn.addEventListener('click', () => {
+                this.testGitHubConnection();
+            });
+        }
+
+        const syncNowBtn = document.getElementById('sync-now-btn');
+        if (syncNowBtn) {
+            syncNowBtn.addEventListener('click', () => {
+                this.syncNow();
+            });
+        }
+
+        const closeGitHubConfig = document.getElementById('close-github-config');
+        if (closeGitHubConfig) {
+            closeGitHubConfig.addEventListener('click', () => {
+                this.closeGitHubConfig();
+            });
+        }
 
         // Time picker
         document.getElementById('close-time-picker').addEventListener('click', () => {
@@ -357,6 +634,24 @@ class App {
 
     updateSettingsTab() {
         document.getElementById('total-entries').textContent = this.dataManager.entries.length;
+
+        // Update GitHub sync status
+        const githubToggle = document.getElementById('github-sync-toggle');
+        const githubSection = document.getElementById('github-config-section');
+        const syncStatus = document.getElementById('sync-status');
+
+        if (githubToggle) {
+            githubToggle.checked = this.dataManager.githubStorage.isConfigured();
+        }
+
+        if (githubSection) {
+            githubSection.style.display = this.dataManager.githubStorage.isConfigured() ? 'block' : 'none';
+        }
+
+        if (syncStatus && this.dataManager.githubStorage.lastSync) {
+            const lastSync = new Date(this.dataManager.githubStorage.lastSync);
+            syncStatus.textContent = `Last synced: ${lastSync.toLocaleString()}`;
+        }
     }
 
     groupEntriesByDate() {
@@ -505,6 +800,122 @@ class App {
         }
     }
 
+    handleGitHubSyncToggle(enabled) {
+        if (enabled) {
+            this.openGitHubConfig();
+        } else {
+            this.dataManager.githubStorage.disable();
+            this.updateSettingsTab();
+        }
+    }
+
+    openGitHubConfig() {
+        // Pre-fill existing values
+        document.getElementById('github-token').value = this.dataManager.githubStorage.token || '';
+        document.getElementById('github-owner').value = this.dataManager.githubStorage.owner || '';
+        document.getElementById('github-repo').value = this.dataManager.githubStorage.repo || '';
+        document.getElementById('github-branch').value = this.dataManager.githubStorage.branch || 'main';
+
+        document.getElementById('github-config-modal').classList.add('active');
+    }
+
+    closeGitHubConfig() {
+        document.getElementById('github-config-modal').classList.remove('active');
+
+        // Reset toggle if not configured
+        const githubToggle = document.getElementById('github-sync-toggle');
+        if (githubToggle && !this.dataManager.githubStorage.isConfigured()) {
+            githubToggle.checked = false;
+        }
+    }
+
+    async saveGitHubConfig() {
+        const token = document.getElementById('github-token').value.trim();
+        const owner = document.getElementById('github-owner').value.trim();
+        const repo = document.getElementById('github-repo').value.trim();
+        const branch = document.getElementById('github-branch').value.trim() || 'main';
+
+        if (!token || !owner || !repo) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        // Show loading
+        const saveBtn = document.getElementById('save-github-config');
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Testing...';
+        saveBtn.disabled = true;
+
+        // Test connection first
+        this.dataManager.githubStorage.configure(token, owner, repo, branch);
+        const test = await this.dataManager.githubStorage.testConnection();
+
+        if (!test.success) {
+            alert(`Failed to connect to GitHub: ${test.error}\n\nPlease check your settings and token permissions.`);
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+            return;
+        }
+
+        // Perform initial sync
+        saveBtn.textContent = 'Syncing...';
+        await this.dataManager.syncFromGitHub();
+        await this.dataManager.syncToGitHub();
+
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+
+        alert('GitHub sync configured successfully!');
+        this.closeGitHubConfig();
+        this.updateSettingsTab();
+        this.updateUI();
+    }
+
+    async testGitHubConnection() {
+        const token = document.getElementById('github-token').value.trim();
+        const owner = document.getElementById('github-owner').value.trim();
+        const repo = document.getElementById('github-repo').value.trim();
+
+        if (!token || !owner || !repo) {
+            alert('Please fill in all fields first');
+            return;
+        }
+
+        const testBtn = document.getElementById('test-github-connection');
+        const originalText = testBtn.textContent;
+        testBtn.textContent = 'Testing...';
+        testBtn.disabled = true;
+
+        const storage = new GitHubStorage();
+        storage.configure(token, owner, repo, 'main');
+        const result = await storage.testConnection();
+
+        testBtn.textContent = originalText;
+        testBtn.disabled = false;
+
+        if (result.success) {
+            alert('✅ Connection successful! Repository is accessible.');
+        } else {
+            alert(`❌ Connection failed: ${result.error}\n\nPlease check:\n- Token has correct permissions\n- Repository name is correct\n- Repository exists and is accessible`);
+        }
+    }
+
+    async syncNow() {
+        const btn = document.getElementById('sync-now-btn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Syncing...';
+        btn.disabled = true;
+
+        await this.dataManager.syncFromGitHub();
+        await this.dataManager.syncToGitHub();
+        this.updateUI();
+
+        btn.textContent = originalText;
+        btn.disabled = false;
+
+        alert('Sync complete!');
+    }
+
     openTimePicker() {
         const container = document.getElementById('time-picker-list');
         container.innerHTML = '';
@@ -563,7 +974,10 @@ class App {
         const isAndroid = /Android/.test(navigator.userAgent);
 
         if (isIOS || isAndroid) {
-            document.getElementById('install-instructions').style.display = 'block';
+            const installInstructions = document.getElementById('install-instructions');
+            if (installInstructions) {
+                installInstructions.style.display = 'block';
+            }
         }
     }
 
@@ -587,7 +1001,10 @@ class App {
         }
 
         this.deferredPrompt = null;
-        document.getElementById('install-btn').style.display = 'none';
+        const installBtn = document.getElementById('install-btn');
+        if (installBtn) {
+            installBtn.style.display = 'none';
+        }
     }
 }
 
