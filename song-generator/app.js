@@ -61,16 +61,14 @@ class ClaudeAPI {
     }
 }
 
-// MusicGen API Integration (via Netlify Function)
+// MiniMax Music-1.5 API Integration (via Netlify Function)
 class MusicGenAPI {
     constructor(apiKey) {
         this.apiKey = apiKey;
         this.endpoint = '/.netlify/functions/generate-music';
     }
 
-    async generateMusic(songData, duration = 20) {
-        const description = this.buildMusicPrompt(songData, duration);
-
+    async generateMusic(songData, genre, mood) {
         try {
             const response = await fetch(this.endpoint, {
                 method: 'POST',
@@ -79,20 +77,15 @@ class MusicGenAPI {
                 },
                 body: JSON.stringify({
                     apiKey: this.apiKey,
-                    description,
-                    duration
+                    songData,
+                    genre,
+                    mood
                 })
             });
 
             if (!response.ok) {
                 const error = await response.json();
-
-                // Check if model is loading
-                if (error.retry) {
-                    throw new Error(error.error);
-                }
-
-                throw new Error(error.error || 'MusicGen API error');
+                throw new Error(error.error || 'Music generation error');
             }
 
             const data = await response.json();
@@ -107,26 +100,9 @@ class MusicGenAPI {
 
             return audioBlob;
         } catch (error) {
-            console.error('MusicGen API Error:', error);
+            console.error('Music Generation API Error:', error);
             throw error;
         }
-    }
-
-    buildMusicPrompt(songData, duration) {
-        let prompt = '';
-
-        if (songData.musicDescription) {
-            prompt = songData.musicDescription;
-        } else {
-            prompt = 'A melodic instrumental track';
-        }
-
-        // Add tempo and mood info
-        if (songData.tempo) {
-            prompt += ` with a tempo of ${songData.tempo}`;
-        }
-
-        return prompt;
     }
 }
 
@@ -223,8 +199,8 @@ class SongGeneratorApp {
             // Step 1: Generate lyrics with Claude
             await this.generateLyrics(premise, genre, mood);
 
-            // Step 2: Generate music with MusicGen
-            await this.generateMusic(duration);
+            // Step 2: Generate complete song with vocals using MiniMax Music-1.5
+            await this.generateMusic(genre, mood);
 
             // Show results
             this.showResults();
@@ -263,17 +239,17 @@ class SongGeneratorApp {
         }
     }
 
-    async generateMusic(duration) {
+    async generateMusic(genre, mood) {
         const musicIcon = document.getElementById('music-icon');
         const musicStatus = document.getElementById('music-status');
 
         musicIcon.textContent = '⏳';
         musicIcon.classList.add('loading');
-        musicStatus.textContent = 'MusicGen is composing your track... (this may take 30-60 seconds)';
+        musicStatus.textContent = 'MiniMax is generating your song with vocals... (this may take 1-2 minutes)';
 
         try {
             const musicGenAPI = new MusicGenAPI(this.apiManager.getHFKey());
-            const audioBlob = await musicGenAPI.generateMusic(this.currentSong, duration);
+            const audioBlob = await musicGenAPI.generateMusic(this.currentSong, genre, mood);
 
             // Create URL for audio playback
             this.currentSong.audioBlob = audioBlob;
@@ -282,7 +258,7 @@ class SongGeneratorApp {
             musicIcon.textContent = '✅';
             musicIcon.classList.remove('loading');
             musicIcon.classList.add('success');
-            musicStatus.textContent = 'Music generated successfully!';
+            musicStatus.textContent = 'Complete song with vocals generated successfully!';
 
         } catch (error) {
             musicIcon.textContent = '❌';

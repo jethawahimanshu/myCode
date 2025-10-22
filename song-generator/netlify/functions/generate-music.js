@@ -1,4 +1,4 @@
-// Serverless function to proxy MusicGen API calls via Replicate
+// Serverless function to proxy MiniMax Music-1.5 API calls via Replicate
 exports.handler = async function(event, context) {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
@@ -9,7 +9,7 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    const { apiKey, description, duration = 8 } = JSON.parse(event.body);
+    const { apiKey, songData, genre, mood } = JSON.parse(event.body);
 
     if (!apiKey) {
       return {
@@ -18,22 +18,41 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Build the music prompt
-    let prompt = description || 'A melodic instrumental track';
+    if (!songData || !songData.lyrics) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Lyrics are required' })
+      };
+    }
 
-    // Step 1: Create prediction on Replicate
-    const createResponse = await fetch('https://api.replicate.com/v1/predictions', {
+    // Build the style/genre prompt
+    let stylePrompt = '';
+    if (genre && mood) {
+      stylePrompt = `${genre}, ${mood}`;
+    } else if (genre) {
+      stylePrompt = genre;
+    } else if (mood) {
+      stylePrompt = mood;
+    } else {
+      stylePrompt = 'pop, melodic';
+    }
+
+    // Add music description if available
+    if (songData.musicDescription) {
+      stylePrompt += `, ${songData.musicDescription}`;
+    }
+
+    // Step 1: Create prediction on Replicate using MiniMax Music-1.5
+    const createResponse = await fetch('https://api.replicate.com/v1/models/minimax/music-1.5/predictions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        version: 'b05b1dff1d8c6dc63d14b0cdb42135378dcb87f6373b0d3d341ede46e59e2b38',
         input: {
-          prompt: prompt,
-          duration: duration,
-          model_version: 'melody-large'
+          lyrics_prompt: stylePrompt,
+          prompt: songData.lyrics
         }
       })
     });

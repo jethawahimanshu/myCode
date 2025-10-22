@@ -1,16 +1,16 @@
 # 🎵 AI Song Generator
 
-A complete AI-powered song generation website that creates **original lyrics** using **Anthropic Claude** and **instrumental music** using **Meta's MusicGen**.
+A complete AI-powered song generation website that creates **original lyrics** using **Anthropic Claude** and **full songs with singing vocals** using **MiniMax Music-1.5**.
 
 ## ✨ Features
 
-- 🎼 **Full Song Generation**: Create complete songs from just a description
+- 🎤 **Complete Songs with Vocals**: Generate full songs with AI singing voices (up to 4 minutes!)
 - 📝 **AI Lyrics**: Claude generates creative, structured lyrics (verse, chorus, bridge)
-- 🎵 **AI Music**: MusicGen composes instrumental tracks to match your vision
+- 🎵 **AI Music & Vocals**: MiniMax Music-1.5 creates instrumental music + natural singing vocals
 - 💾 **Download Everything**: Get both music (WAV) and lyrics (TXT) files
 - 🎨 **Beautiful UI**: Modern, responsive design with smooth animations
 - 🔒 **Privacy First**: All API keys stored locally in your browser
-- 🎛️ **Customizable**: Choose genre, mood, and music duration
+- 🎛️ **Customizable**: Choose genre, mood, and vocal style
 
 ---
 
@@ -118,7 +118,7 @@ Download as WAV + TXT
 - **Frontend**: Pure HTML, CSS, JavaScript (no frameworks!)
 - **Backend**: Netlify Serverless Functions
 - **Lyrics AI**: Anthropic Claude 3.5 Sonnet
-- **Music AI**: Meta MusicGen (via Replicate API)
+- **Music & Vocals AI**: MiniMax Music-1.5 (via Replicate API)
 - **Styling**: Modern CSS with gradients and animations
 - **Storage**: Browser localStorage for API keys
 
@@ -167,14 +167,15 @@ Claude generates:
 - ✅ Poetic and creative language
 - ✅ Proper song structure
 
-### Music Generation (MusicGen)
+### Music & Vocal Generation (MiniMax Music-1.5)
 
-MusicGen creates:
-- ✅ Instrumental track (no vocals)
-- ✅ Matches the described style
-- ✅ 10-30 second duration
+MiniMax Music-1.5 creates:
+- ✅ Complete songs with natural singing vocals
+- ✅ Instrumental accompaniment
+- ✅ Matches the described style and genre
+- ✅ Up to 4 minutes (240 seconds) duration
 - ✅ WAV format audio
-- ✅ High quality output
+- ✅ Studio-quality output with rich instrumentation
 
 ### Download Options
 
@@ -210,10 +211,10 @@ MusicGen creates:
 - Melancholic
 - *Or let AI decide*
 
-### Duration Options
-- 8 seconds (quick preview)
-- 15 seconds (recommended)
-- 30 seconds (longer track)
+### Song Length
+- Automatically generates songs up to 4 minutes (240 seconds)
+- Length depends on lyrics and song structure
+- Complete songs with all sections (intro, verse, chorus, bridge, outro)
 
 ---
 
@@ -224,15 +225,15 @@ MusicGen creates:
 - **Check your account** has API credits
 - **Check the console** for detailed error messages
 
-### "MusicGen Model is Loading"
-- **Wait 30-60 seconds** - The model needs to warm up on Replicate
-- **Try again** - First request takes longer
+### "Music Generation is Taking Too Long"
+- **Wait 1-2 minutes** - MiniMax Music-1.5 generates complete songs with vocals
+- **Try again** - First request may take longer as model warms up
 - **Check your Replicate token** is correct
 
 ### "Music Generation Failed"
 - **Replicate may be busy** - Try again in a few minutes
-- **Check your description** - Make it more specific about music style
-- **Reduce duration** - Shorter tracks generate faster (try 8 seconds)
+- **Check your lyrics** - Make sure Claude generated proper lyrics
+- **Simplify genre/mood** - Try more common genres like "pop" or "rock"
 - **Check credits** - Make sure you have Replicate credits available
 
 ### "No Audio Plays"
@@ -249,14 +250,15 @@ MusicGen creates:
 - Uses Claude 3.5 Sonnet
 - Pay per token
 
-### Replicate (MusicGen)
+### Replicate (MiniMax Music-1.5)
 - **FREE credits** to start with
-- ~$0.002 - $0.005 per generation after free credits
-- Fast and reliable
+- ~$0.05 - $0.15 per song (depending on length) after free credits
+- Generates complete songs with vocals
+- Worth it for studio-quality output!
 
-**Total cost per song: ~$0.01 - $0.04**
+**Total cost per song: ~$0.06 - $0.18**
 
-Very affordable for creative projects! Replicate offers free credits when you sign up.
+Still very affordable for creative projects! Replicate offers free credits when you sign up.
 
 ---
 
@@ -353,8 +355,8 @@ model: 'claude-3-5-haiku-20241022' // Cheaper, faster
 - Models: https://docs.anthropic.com/claude/docs/models-overview
 - Pricing: https://www.anthropic.com/pricing
 
-### Replicate (MusicGen)
-- MusicGen Model: https://replicate.com/meta/musicgen
+### Replicate (MiniMax Music-1.5)
+- MiniMax Music-1.5 Model: https://replicate.com/minimax/music-1.5
 - API Docs: https://replicate.com/docs
 - Pricing: https://replicate.com/pricing
 
@@ -392,12 +394,12 @@ Ideas:
 ## ⚠️ Limitations
 
 ### Current Limitations
-- ❌ Music is instrumental only (no singing)
-- ❌ Music duration limited to 30 seconds max (for faster generation)
-- ❌ MusicGen may take 30-120 seconds to generate
-- ❌ Quality depends on model and prompt
-- ❌ No real-time preview during generation
-- ❌ Requires Replicate credits after free tier
+- ⚠️ Song generation takes 1-2 minutes (worth the wait!)
+- ⚠️ Maximum song length is 4 minutes (240 seconds)
+- ⚠️ Vocal style depends on lyrics and genre (limited customization)
+- ⚠️ Quality varies based on prompt complexity
+- ⚠️ No real-time preview during generation
+- ⚠️ Requires Replicate credits after free tier
 
 ### Workarounds
 - Use generated lyrics with other vocal tools
@@ -421,9 +423,9 @@ Generated content (lyrics & music) belongs to **you**!
 
 ## 🎉 Credits
 
-- **Anthropic** - Claude AI for lyrics
-- **Meta** - MusicGen model
-- **Replicate** - MusicGen API hosting
+- **Anthropic** - Claude AI for lyrics generation
+- **MiniMax** - Music-1.5 model for vocals & music
+- **Replicate** - API hosting and infrastructure
 - **Netlify** - Serverless functions hosting
 - **You** - For creating amazing songs!
 
@@ -439,6 +441,6 @@ Having issues?
 
 ---
 
-**Made with ❤️ using Claude AI and MusicGen**
+**Made with ❤️ using Claude AI and MiniMax Music-1.5**
 
-**Start creating your hit songs now! 🎵🚀**
+**Start creating your hit songs with vocals now! 🎤🎵🚀**
