@@ -333,7 +333,7 @@ class SongGeneratorApp {
         const url = this.currentSong.audioURL;
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${this.currentSong.title.replace(/[^a-z0-9]/gi, '_')}.wav`;
+        a.download = `${this.currentSong.title.replace(/[^a-z0-9]/gi, '_')}.mp3`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

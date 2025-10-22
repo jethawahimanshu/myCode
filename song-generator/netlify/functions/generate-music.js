@@ -29,11 +29,13 @@ exports.handler = async function(event, context) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        version: 'b05b1dff1d8c6dc63d14b0cdb42135378dcb87f6373b0d3d341ede46e59e2b38',
+        version: '7be0f12c54a8d033a0fbd14418c9af98962da9a86f5ff7811f9b3423a1f0b7d7',
         input: {
           prompt: prompt,
           duration: duration,
-          model_version: 'stereo-melody-large'
+          model_version: 'melody',
+          output_format: 'mp3',
+          normalization_strategy: 'loudness'
         }
       })
     });
@@ -106,7 +108,7 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify({
         audio: base64Audio,
-        contentType: 'audio/wav'
+        contentType: 'audio/mp3'
       })
     };
 
