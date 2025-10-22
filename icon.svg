@@ -1,0 +1,35 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2196F3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976D2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#grad)" rx="80"/>
+
+  <!-- Meditation figure -->
+  <g fill="white" opacity="0.95">
+    <!-- Head -->
+    <circle cx="256" cy="180" r="55"/>
+
+    <!-- Body -->
+    <ellipse cx="256" cy="280" rx="65" ry="80"/>
+
+    <!-- Lotus petals -->
+    <ellipse cx="180" cy="340" rx="40" ry="25" transform="rotate(-30 180 340)"/>
+    <ellipse cx="220" cy="360" rx="35" ry="20" transform="rotate(-15 220 360)"/>
+    <ellipse cx="256" cy="370" rx="38" ry="22"/>
+    <ellipse cx="292" cy="360" rx="35" ry="20" transform="rotate(15 292 360)"/>
+    <ellipse cx="332" cy="340" rx="40" ry="25" transform="rotate(30 332 340)"/>
+
+    <!-- Arms in meditation pose -->
+    <ellipse cx="200" cy="260" rx="25" ry="50" transform="rotate(-20 200 260)"/>
+    <ellipse cx="312" cy="260" rx="25" ry="50" transform="rotate(20 312 260)"/>
+  </g>
+
+  <!-- Mindfulness symbol (small circle on forehead) -->
+  <circle cx="256" cy="170" r="8" fill="#FFD700" opacity="0.9"/>
+</svg>
