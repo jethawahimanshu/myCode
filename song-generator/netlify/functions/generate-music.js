@@ -73,7 +73,7 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify({
         input: {
-          lyrics_prompt: lyricsPrompt,
+          prompt: lyricsPrompt,
           lyrics: lyrics
         }
       })
