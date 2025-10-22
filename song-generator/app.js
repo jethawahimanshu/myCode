@@ -48,7 +48,13 @@ class ClaudeAPI {
             });
 
             if (!response.ok) {
-                const error = await response.json();
+                let error;
+                try {
+                    error = await response.json();
+                } catch (e) {
+                    const text = await response.text();
+                    error = { error: text || 'Claude API error' };
+                }
                 throw new Error(error.error || 'Claude API error');
             }
 
@@ -84,7 +90,14 @@ class MusicGenAPI {
             });
 
             if (!response.ok) {
-                const error = await response.json();
+                let error;
+                try {
+                    error = await response.json();
+                } catch (e) {
+                    // If JSON parsing fails, try as text
+                    const text = await response.text();
+                    error = { error: text || 'Music generation error' };
+                }
                 throw new Error(error.error || 'Music generation error');
             }
 

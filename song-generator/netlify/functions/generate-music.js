@@ -114,12 +114,30 @@ exports.handler = async function(event, context) {
     });
 
     if (!createResponse.ok) {
-      const error = await createResponse.json();
+      // Try to parse as JSON, but fall back to text if it fails
+      let error;
+      const contentType = createResponse.headers.get('content-type');
+
+      try {
+        if (contentType && contentType.includes('application/json')) {
+          error = await createResponse.json();
+        } else {
+          const textError = await createResponse.text();
+          error = { message: textError };
+        }
+      } catch (parseError) {
+        // If JSON parsing fails, get it as text
+        const textError = await createResponse.text();
+        error = { message: textError, parseError: parseError.message };
+      }
+
       console.error('=== Replicate API Error ===');
       console.error('Status:', createResponse.status);
+      console.error('Content-Type:', contentType);
       console.error('Error:', JSON.stringify(error, null, 2));
       console.error('Sent payload:', JSON.stringify(inputPayload, null, 2));
       console.error('==========================');
+
       return {
         statusCode: createResponse.status,
         body: JSON.stringify({
