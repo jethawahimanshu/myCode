@@ -25,14 +25,13 @@ A complete AI-powered song generation website that creates **original lyrics** u
 4. Click **"Create Key"**
 5. Copy your key (starts with `sk-ant-api03-...`)
 
-#### Hugging Face API Token
-1. Go to [Hugging Face](https://huggingface.co/settings/tokens)
-2. Sign up / Log in
-3. Click **"New token"**
-4. Name: "MusicGen"
-5. Type: **Read**
-6. Click **"Generate"**
-7. Copy your token (starts with `hf_...`)
+#### Replicate API Token
+1. Go to [Replicate](https://replicate.com/account/api-tokens)
+2. Sign up / Log in (free credits included!)
+3. Copy your default token or create a new one
+4. Copy your token (starts with `r8_...`)
+
+**Note:** Replicate offers free credits to start with, perfect for testing!
 
 ### Step 2: Deploy to Netlify
 
@@ -82,7 +81,7 @@ Then open: `http://localhost:8888`
 
 1. Open the app
 2. Paste your Claude API key
-3. Paste your Hugging Face token
+3. Paste your Replicate token
 4. Click **"Save Keys"**
 
 Your keys are stored securely in browser localStorage.
@@ -117,8 +116,9 @@ Download as WAV + TXT
 ### Technologies Used
 
 - **Frontend**: Pure HTML, CSS, JavaScript (no frameworks!)
+- **Backend**: Netlify Serverless Functions
 - **Lyrics AI**: Anthropic Claude 3.5 Sonnet
-- **Music AI**: Meta MusicGen (via Hugging Face Inference API)
+- **Music AI**: Meta MusicGen (via Replicate API)
 - **Styling**: Modern CSS with gradients and animations
 - **Storage**: Browser localStorage for API keys
 
@@ -211,8 +211,8 @@ MusicGen creates:
 - *Or let AI decide*
 
 ### Duration Options
-- 10 seconds (preview)
-- 20 seconds (recommended)
+- 8 seconds (quick preview)
+- 15 seconds (recommended)
 - 30 seconds (longer track)
 
 ---
@@ -225,14 +225,15 @@ MusicGen creates:
 - **Check the console** for detailed error messages
 
 ### "MusicGen Model is Loading"
-- **Wait 30 seconds** - The model needs to load on Hugging Face
+- **Wait 30-60 seconds** - The model needs to warm up on Replicate
 - **Try again** - First request takes longer
-- **Check your HF token** has read permissions
+- **Check your Replicate token** is correct
 
 ### "Music Generation Failed"
-- **Hugging Face may be overloaded** - Try again in a few minutes
+- **Replicate may be busy** - Try again in a few minutes
 - **Check your description** - Make it more specific about music style
-- **Reduce duration** - Shorter tracks generate faster
+- **Reduce duration** - Shorter tracks generate faster (try 8 seconds)
+- **Check credits** - Make sure you have Replicate credits available
 
 ### "No Audio Plays"
 - **Check browser compatibility** - Chrome, Firefox, Safari work best
@@ -248,14 +249,14 @@ MusicGen creates:
 - Uses Claude 3.5 Sonnet
 - Pay per token
 
-### Hugging Face (MusicGen)
-- **FREE** on Inference API
-- Rate limited
-- May have wait times during high traffic
+### Replicate (MusicGen)
+- **FREE credits** to start with
+- ~$0.002 - $0.005 per generation after free credits
+- Fast and reliable
 
-**Total cost per song: ~$0.01 - $0.03**
+**Total cost per song: ~$0.01 - $0.04**
 
-Very affordable for creative projects!
+Very affordable for creative projects! Replicate offers free credits when you sign up.
 
 ---
 
@@ -352,10 +353,10 @@ model: 'claude-3-5-haiku-20241022' // Cheaper, faster
 - Models: https://docs.anthropic.com/claude/docs/models-overview
 - Pricing: https://www.anthropic.com/pricing
 
-### Hugging Face (MusicGen)
-- Model: https://huggingface.co/facebook/musicgen-small
-- API Docs: https://huggingface.co/docs/api-inference/
-- Rate Limits: https://huggingface.co/docs/api-inference/rate-limits
+### Replicate (MusicGen)
+- MusicGen Model: https://replicate.com/meta/musicgen
+- API Docs: https://replicate.com/docs
+- Pricing: https://replicate.com/pricing
 
 ---
 
@@ -392,10 +393,11 @@ Ideas:
 
 ### Current Limitations
 - ❌ Music is instrumental only (no singing)
-- ❌ Music duration limited to 30 seconds (API constraints)
-- ❌ MusicGen may take 30-90 seconds to generate
-- ❌ Quality depends on API availability
+- ❌ Music duration limited to 30 seconds max (for faster generation)
+- ❌ MusicGen may take 30-120 seconds to generate
+- ❌ Quality depends on model and prompt
 - ❌ No real-time preview during generation
+- ❌ Requires Replicate credits after free tier
 
 ### Workarounds
 - Use generated lyrics with other vocal tools
@@ -421,7 +423,8 @@ Generated content (lyrics & music) belongs to **you**!
 
 - **Anthropic** - Claude AI for lyrics
 - **Meta** - MusicGen model
-- **Hugging Face** - Free API hosting
+- **Replicate** - MusicGen API hosting
+- **Netlify** - Serverless functions hosting
 - **You** - For creating amazing songs!
 
 ---
