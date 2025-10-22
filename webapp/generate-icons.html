@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+        .instructions {
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: left;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Icon Generator for Mindfulness Tracker</h1>
+
+    <div class="instructions">
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Right-click on each canvas below</li>
+            <li>Select "Save image as..."</li>
+            <li>Save as "icon-192.png" and "icon-512.png" respectively</li>
+            <li>Place the files in the webapp folder</li>
+        </ol>
+    </div>
+
+    <h3>192x192 Icon</h3>
+    <canvas id="icon192" width="192" height="192"></canvas>
+
+    <h3>512x512 Icon</h3>
+    <canvas id="icon512" width="512" height="512"></canvas>
+
+    <script>
+        function generateIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#2196F3');
+            gradient.addColorStop(1, '#1976D2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw lotus/mindfulness symbol
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = size / 40;
+
+            // Simple lotus petals
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const radius = size / 3;
+
+            // Draw a simple meditation symbol
+            ctx.beginPath();
+            ctx.arc(centerX, centerY - radius / 3, radius / 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Body
+            ctx.beginPath();
+            ctx.arc(centerX, centerY + radius / 6, radius / 2.5, 0, Math.PI);
+            ctx.fill();
+
+            // Lotus petals
+            for (let i = 0; i < 5; i++) {
+                const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+                const x = centerX + Math.cos(angle) * radius * 0.8;
+                const y = centerY + radius / 2 + Math.sin(angle) * radius * 0.4;
+
+                ctx.beginPath();
+                ctx.ellipse(x, y, radius / 4, radius / 6, angle, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // Add some transparency to make it look better
+            ctx.globalAlpha = 0.9;
+        }
+
+        // Generate both icons
+        generateIcon('icon192', 192);
+        generateIcon('icon512', 512);
+    </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		MindfulnessTrackerApp /* MindfulnessTrackerApp.swift in Sources */ = {isa = PBXBuildFile; };
+		ContentView /* ContentView.swift in Sources */ = {isa = PBXBuildFile; };
+		DailyEntry /* DailyEntry.swift in Sources */ = {isa = PBXBuildFile; };
+		NotificationManager /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; };
+		DataManager /* DataManager.swift in Sources */ = {isa = PBXBuildFile; };
+		HistoryView /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; };
+		QuestionnaireView /* QuestionnaireView.swift in Sources */ = {isa = PBXBuildFile; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		MindfulnessTracker.app /* MindfulnessTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MindfulnessTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		Root = {
+			isa = PBXGroup;
+			children = (
+				MindfulnessTracker,
+				Products,
+			);
+			sourceTree = "<group>";
+		};
+		Products = {
+			isa = PBXGroup;
+			children = (
+				MindfulnessTracker.app,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		MindfulnessTracker = {
+			isa = PBXGroup;
+			children = (
+				MindfulnessTrackerApp.swift,
+				ContentView.swift,
+				DailyEntry.swift,
+				NotificationManager.swift,
+				DataManager.swift,
+				HistoryView.swift,
+				QuestionnaireView.swift,
+				Info.plist,
+			);
+			path = MindfulnessTracker;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+	};
+	rootObject = Root /* Project object */;
+}
