@@ -87,6 +87,20 @@ exports.handler = async function(event, context) {
       lyricsPrompt = 'pop, melodic, upbeat';
     }
 
+    // Prepare the input payload
+    const inputPayload = {
+      prompt: lyricsPrompt,
+      lyrics: lyrics
+    };
+
+    // Log what we're sending (for debugging)
+    console.log('=== MiniMax API Request ===');
+    console.log('prompt length:', lyricsPrompt.length);
+    console.log('prompt:', lyricsPrompt);
+    console.log('lyrics length:', lyrics.length);
+    console.log('lyrics:', lyrics);
+    console.log('===========================');
+
     // Step 1: Create prediction on Replicate using MiniMax Music-1.5
     const createResponse = await fetch('https://api.replicate.com/v1/models/minimax/music-1.5/predictions', {
       method: 'POST',
@@ -95,19 +109,23 @@ exports.handler = async function(event, context) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        input: {
-          prompt: lyricsPrompt,
-          lyrics: lyrics
-        }
+        input: inputPayload
       })
     });
 
     if (!createResponse.ok) {
       const error = await createResponse.json();
-      console.error('Replicate Create Error:', error);
+      console.error('=== Replicate API Error ===');
+      console.error('Status:', createResponse.status);
+      console.error('Error:', JSON.stringify(error, null, 2));
+      console.error('Sent payload:', JSON.stringify(inputPayload, null, 2));
+      console.error('==========================');
       return {
         statusCode: createResponse.status,
-        body: JSON.stringify({ error: error.detail || 'Failed to create prediction' })
+        body: JSON.stringify({
+          error: error.detail || error.message || 'Failed to create prediction',
+          details: error
+        })
       };
     }
 
