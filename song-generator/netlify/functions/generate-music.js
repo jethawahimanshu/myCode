@@ -39,21 +39,29 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Build the style/genre prompt
-    let stylePrompt = '';
+    // Build the style/genre prompt (lyrics_prompt parameter, 10-300 chars)
+    let lyricsPrompt = '';
     if (genre && mood) {
-      stylePrompt = `${genre}, ${mood}`;
+      lyricsPrompt = `${genre}, ${mood}`;
     } else if (genre) {
-      stylePrompt = genre;
+      lyricsPrompt = genre;
     } else if (mood) {
-      stylePrompt = mood;
+      lyricsPrompt = mood;
     } else {
-      stylePrompt = 'pop, melodic';
+      lyricsPrompt = 'pop, melodic';
     }
 
     // Add music description if available
     if (songData.musicDescription) {
-      stylePrompt += `, ${songData.musicDescription}`;
+      lyricsPrompt += `, ${songData.musicDescription}`;
+    }
+
+    // Ensure lyrics_prompt is within 10-300 character limit
+    if (lyricsPrompt.length > 300) {
+      lyricsPrompt = lyricsPrompt.substring(0, 297) + '...';
+    }
+    if (lyricsPrompt.length < 10) {
+      lyricsPrompt = 'pop, melodic, upbeat';
     }
 
     // Step 1: Create prediction on Replicate using MiniMax Music-1.5
@@ -65,8 +73,8 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify({
         input: {
-          prompt: stylePrompt,
-          lyrics: lyrics
+          lyrics_prompt: lyricsPrompt,
+          prompt: lyrics
         }
       })
     });
