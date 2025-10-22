@@ -168,24 +168,40 @@ class DataManager {
         }
     }
 
+    // Get available storage (localStorage or sessionStorage as fallback)
+    getStorage() {
+        try {
+            // Try localStorage first
+            localStorage.setItem('__test__', '1');
+            localStorage.removeItem('__test__');
+            return { storage: localStorage, type: 'localStorage' };
+        } catch (e) {
+            // Fall back to sessionStorage (works in incognito but only for session)
+            console.warn('localStorage not available, using sessionStorage');
+            return { storage: sessionStorage, type: 'sessionStorage' };
+        }
+    }
+
     loadEntriesLocal() {
         try {
-            const data = localStorage.getItem('mindfulness_entries');
+            const { storage, type } = this.getStorage();
+            const data = storage.getItem('mindfulness_entries');
             const entries = data ? JSON.parse(data) : [];
-            console.log('localStorage read:', entries.length, 'entries');
+            console.log(`${type} read:`, entries.length, 'entries');
             return entries;
         } catch (error) {
-            console.error('Error loading from localStorage:', error);
+            console.error('Error loading from storage:', error);
             return [];
         }
     }
 
     saveEntriesLocal() {
         try {
-            localStorage.setItem('mindfulness_entries', JSON.stringify(this.entries));
-            console.log('Saved to localStorage:', this.entries.length, 'entries');
+            const { storage, type } = this.getStorage();
+            storage.setItem('mindfulness_entries', JSON.stringify(this.entries));
+            console.log(`Saved to ${type}:`, this.entries.length, 'entries');
         } catch (error) {
-            console.error('Error saving to localStorage:', error);
+            console.error('Error saving to storage:', error);
         }
     }
 
@@ -1029,6 +1045,29 @@ class App {
     }
 }
 
+// Detect incognito/private browsing mode
+function isIncognitoMode() {
+    // Test for various browsers
+    return new Promise((resolve) => {
+        // Chrome/Edge incognito detection
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            navigator.storage.estimate().then(estimate => {
+                // In incognito, quota is very limited
+                resolve(estimate.quota < 120000000);
+            });
+        } else {
+            // Fallback: try localStorage
+            try {
+                localStorage.setItem('__test__', '1');
+                localStorage.removeItem('__test__');
+                resolve(false); // localStorage works, not incognito
+            } catch (e) {
+                resolve(true); // localStorage failed, likely incognito
+            }
+        }
+    });
+}
+
 // Test localStorage availability
 function testLocalStorage() {
     try {
@@ -1046,21 +1085,103 @@ function testLocalStorage() {
         }
     } catch (error) {
         console.error('❌ localStorage is NOT available:', error);
-        alert('Warning: Data storage is not available in this browser. Your data will not be saved. Please check browser settings or try a different browser.');
         return false;
     }
 }
 
+// Show incognito mode warning
+function showIncognitoWarning() {
+    const banner = document.createElement('div');
+    banner.id = 'incognito-warning';
+    banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        text-align: center;
+        z-index: 10000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        font-size: 14px;
+        line-height: 1.5;
+    `;
+    banner.innerHTML = `
+        <div style="max-width: 600px; margin: 0 auto;">
+            <strong>🔒 Private Browsing Mode Detected</strong>
+            <p style="margin: 10px 0; font-size: 13px;">
+                Your data will only last for this session. For persistent storage across devices,
+                <a href="#" id="enable-github-sync-link" style="color: #FFD700; text-decoration: underline; font-weight: bold;">
+                    enable GitHub Sync
+                </a>
+            </p>
+            <button id="dismiss-incognito-warning" style="
+                background: rgba(255,255,255,0.2);
+                border: 1px solid white;
+                color: white;
+                padding: 5px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 12px;
+                margin-top: 5px;
+            ">Dismiss</button>
+        </div>
+    `;
+
+    document.body.insertBefore(banner, document.body.firstChild);
+
+    // Add padding to main content
+    document.getElementById('app').style.paddingTop = '120px';
+
+    // Dismiss button
+    document.getElementById('dismiss-incognito-warning').addEventListener('click', () => {
+        banner.remove();
+        document.getElementById('app').style.paddingTop = '0';
+    });
+
+    // Enable GitHub Sync link
+    document.getElementById('enable-github-sync-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        // Switch to settings tab
+        if (window.app) {
+            window.app.switchTab('settings');
+            // Scroll to GitHub Sync section
+            setTimeout(() => {
+                const githubSection = document.querySelector('#github-sync-toggle');
+                if (githubSection) {
+                    githubSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Highlight the toggle
+                    githubSection.closest('.setting-item').style.background = 'rgba(33, 150, 243, 0.1)';
+                    setTimeout(() => {
+                        githubSection.closest('.setting-item').style.background = '';
+                    }, 2000);
+                }
+            }, 300);
+        }
+        banner.remove();
+        document.getElementById('app').style.paddingTop = '0';
+    });
+}
+
 // Initialize app when DOM is ready
 let app;
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        testLocalStorage();
-        app = new App();
-    });
-} else {
-    testLocalStorage();
+async function initApp() {
+    const localStorageWorks = testLocalStorage();
+    const incognito = await isIncognitoMode();
+
+    if (incognito) {
+        console.log('🔒 Incognito mode detected');
+        showIncognitoWarning();
+    }
+
     app = new App();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
 }
 
 // Request notification permission at scheduled times
