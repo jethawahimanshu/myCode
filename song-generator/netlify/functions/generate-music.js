@@ -114,27 +114,22 @@ exports.handler = async function(event, context) {
     });
 
     if (!createResponse.ok) {
-      // Try to parse as JSON, but fall back to text if it fails
+      // Read response as text first (can only read body once!)
+      const responseText = await createResponse.text();
       let error;
-      const contentType = createResponse.headers.get('content-type');
 
+      // Try to parse as JSON
       try {
-        if (contentType && contentType.includes('application/json')) {
-          error = await createResponse.json();
-        } else {
-          const textError = await createResponse.text();
-          error = { message: textError };
-        }
+        error = JSON.parse(responseText);
       } catch (parseError) {
-        // If JSON parsing fails, get it as text
-        const textError = await createResponse.text();
-        error = { message: textError, parseError: parseError.message };
+        // If JSON parsing fails, use the text as-is
+        error = { message: responseText };
       }
 
       console.error('=== Replicate API Error ===');
       console.error('Status:', createResponse.status);
-      console.error('Content-Type:', contentType);
-      console.error('Error:', JSON.stringify(error, null, 2));
+      console.error('Response text:', responseText);
+      console.error('Parsed error:', JSON.stringify(error, null, 2));
       console.error('Sent payload:', JSON.stringify(inputPayload, null, 2));
       console.error('==========================');
 

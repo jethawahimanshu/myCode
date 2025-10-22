@@ -48,11 +48,12 @@ class ClaudeAPI {
             });
 
             if (!response.ok) {
+                // Read as text first (can only read body once)
+                const text = await response.text();
                 let error;
                 try {
-                    error = await response.json();
+                    error = JSON.parse(text);
                 } catch (e) {
-                    const text = await response.text();
                     error = { error: text || 'Claude API error' };
                 }
                 throw new Error(error.error || 'Claude API error');
@@ -90,12 +91,12 @@ class MusicGenAPI {
             });
 
             if (!response.ok) {
+                // Read as text first (can only read body once)
+                const text = await response.text();
                 let error;
                 try {
-                    error = await response.json();
+                    error = JSON.parse(text);
                 } catch (e) {
-                    // If JSON parsing fails, try as text
-                    const text = await response.text();
                     error = { error: text || 'Music generation error' };
                 }
                 throw new Error(error.error || 'Music generation error');
