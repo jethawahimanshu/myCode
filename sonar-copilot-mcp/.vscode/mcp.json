@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sonar-copilot": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/sonar-copilot-mcp/dist/index.js"
+      ],
+      "env": {
+        "WORKSPACE_PATH": "${workspaceFolder}"
+      }
+    }
+  }
+}
