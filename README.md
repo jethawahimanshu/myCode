@@ -1,12 +1,32 @@
-# Mindfulness Tracker
+# My Code Repository
+
+This repository contains multiple projects:
+
+## 📋 Projects in This Repository
+
+### 1. 🤖 SonarLint MCP Server for GitHub Copilot
+**Location:** `/sonar-copilot-mcp/` folder
+
+An MCP (Model Context Protocol) server that enables GitHub Copilot Agent Mode to automatically read and resolve SonarLint issues in IntelliJ IDEA.
+
+- **Auto-fix code quality issues** with AI assistance
+- **Integrates with GitHub Copilot** in IntelliJ IDEA
+- **Smart context extraction** for better fixes
+- **Severity-based prioritization** (BLOCKER, CRITICAL, MAJOR, MINOR, INFO)
+- **Works with any language** supported by SonarLint
+
+👉 **[Read the SonarLint MCP Server README](sonar-copilot-mcp/README.md)** for setup instructions
+
+### 2. 🧘 Mindfulness Tracker
+**Multiple Versions Available**
 
 A daily mindfulness tracking app that prompts you multiple times throughout the day to reflect on your mental and physical state.
 
-## Choose Your Version
+#### Choose Your Version
 
-This repository contains **TWO versions** of the same app:
+This project has **TWO versions** of the same app:
 
-### 🌐 Web App (Recommended - Works on ANY device!)
+#### 🌐 Web App (Recommended - Works on ANY device!)
 **Location:** `/webapp/` folder
 
 A Progressive Web App (PWA) that works on iPhone, Android, and desktop browsers. No Mac required!
@@ -19,7 +39,7 @@ A Progressive Web App (PWA) that works on iPhone, Android, and desktop browsers.
 
 👉 **[Read the Web App README](webapp/README.md)** for instructions
 
-### 📱 iOS App (Requires Mac + Xcode)
+#### 📱 iOS App (Requires Mac + Xcode)
 **Location:** `/MindfulnessTracker/` folder
 
 A native iOS app built with SwiftUI for iPhone and iPad.
@@ -32,7 +52,26 @@ A native iOS app built with SwiftUI for iPhone and iPad.
 
 ---
 
-## Quick Start (Web App)
+### 3. 🎵 AI Song Generator
+**Location:** `/song-generator/` folder
+
+A web-based AI music generator that creates custom songs with lyrics and music.
+
+- **AI-powered lyrics** generation
+- **Music generation** with multiple providers
+- **Web-based interface** - works in any browser
+
+👉 Check the `/song-generator/` folder for more details
+
+---
+
+## Quick Start Guides
+
+### SonarLint MCP Server
+
+See [sonar-copilot-mcp/QUICKSTART.md](sonar-copilot-mcp/QUICKSTART.md)
+
+### Mindfulness Tracker - Web App
 
 1. **Open** `webapp/generate-icons.html` in a browser and save the two icons
 2. **Run** a local server:
@@ -47,9 +86,9 @@ See [webapp/README.md](webapp/README.md) for deployment to free hosting.
 
 ---
 
-# iOS App Documentation
+## iOS App Documentation (Mindfulness Tracker)
 
-Below are the instructions for the native iOS app version.
+Below are the detailed instructions for the native iOS app version of Mindfulness Tracker.
 
 ## Features
 
